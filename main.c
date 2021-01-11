@@ -3,10 +3,10 @@
 #include <string.h>
 #include <errno.h>
 
-/* TODO wrapper for cartesian product
- * memory deallocation functions
- * setPrint function
+/* TODO 
  * read data from a file or generated randomly
+ * partition cartesian product into a set of equivalence classes. Equivalence
+ * relation: have the same first coordinate
 */
 
 typedef struct pair {
@@ -19,6 +19,11 @@ typedef struct set {
 	int size;
 } Set;
 
+typedef struct cartesian {
+	Pair *data;
+	int size;
+} CartProduct;
+
 Set* initSet(const int *data, const int size) {
 	Set *set = malloc(sizeof(Set));
 	set->data = malloc(sizeof(int) * size);
@@ -28,25 +33,44 @@ Set* initSet(const int *data, const int size) {
 	return set;
 }
 
-Pair *initCartesian(const Set *X, const Set *Y) {
-	int size = X->size * Y->size; // calculate the size of Cartesian product set
-	Pair *cartesian = malloc(sizeof(Pair) * size);
+void uninitSet(Set *set) {
+	free(set->data);
+	free(set);
+}
+
+CartProduct *initCartesian(const Set *X, const Set *Y) {
+	CartProduct *cart = malloc(sizeof(CartProduct));
+	cart->size = X->size * Y->size; // calculate the size of Cartesian product set
+
+	cart->data = malloc(sizeof(Pair) * cart->size);
 
 	for (int i = 0; i < X->size; ++i) {
 		for (int j = 0; j < Y->size; ++j) {
-			cartesian[i * Y->size + j].x = X->data[i];
-			cartesian[i * Y->size + j].y = Y->data[j];
+			cart->data[i * Y->size + j].x = X->data[i];
+			cart->data[i * Y->size + j].y = Y->data[j];
 		}
 	}
 
-	return cartesian;
+	return cart;
 }
 
-void printCartesian(Pair *cart, int size) {
-	for (int i = 0; i < size; ++i) {
-		printf("<%i,%i> ", cart[i].x, cart[i].y);
+void uninitCartesian(CartProduct *cart) {
+	free(cart->data);
+	free(cart);
+}
+
+void printCartesian(const CartProduct *cart) {
+	for (int i = 0; i < cart->size; ++i) {
+		printf("<%i,%i> ", cart->data[i].x, cart->data[i].y);
 	}
-	printf("\n");
+}
+
+void printSet(const Set *set) {
+	printf("{ ");
+	for (int i = 0; i < set->size; ++i) {
+		printf("%i ", set->data[i]);
+	}
+	printf("}");
 }
 
 int main (int argc, char **argv) {
@@ -56,11 +80,20 @@ int main (int argc, char **argv) {
 	Set *A, *B;
 	A = initSet(setA, 4);
 	B = initSet(setB, 4);
+	printSet(A);
+	printf("\n");
+	printSet(B);
+	printf("\n");
 
-	Pair *cart = initCartesian(A, B);
+	CartProduct *cart = initCartesian(A, B);
 
-	printCartesian(cart, 16);
+	printCartesian(cart);
+	printf("\n");
+
+	// free previously allocated memory
+	uninitSet(A);
+	uninitSet(B);
+	uninitCartesian(cart);
 	
 	return 0;
 }
-
